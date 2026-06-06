@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>沙河星空下，主楼钟声里 —— 北航角落漫游指南 | 互动星图</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+    background: #030712;
+    color: #f3f4f6;
+    overflow-x: hidden;
+}
+
+/* 星空背景 */
+.stars {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, #0b1528 0%, #020617 100%);
+    overflow: hidden;
+    z-index: -2;
+}
+
+.star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: #ffffff;
+    border-radius: 50%;
+    opacity: 0.5;
+    animation: pulse linear infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.8); opacity: 0.2; }
+    50% { transform: scale(1.4); opacity: 1; box-shadow: 0 0 6px #fff; }
+    100% { transform: scale(0.8); opacity: 0.2; }
+}
+
+/* 主视觉 */
+.hero {
+    height: 75vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    background-image: linear-gradient(to bottom, rgba(3, 7, 18, 0.5), #030712), 
+                      url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1920');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+}
+
+.hero-content {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 30px 50px;
+    border-radius: 32px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    animation: slideUp 1s ease-out;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(40px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.hero h1 {
+    font-size: 40px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    background: linear-gradient(135deg, #fff, #a5b4fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.hero p {
+    font-size: 16px;
+    letter-spacing: 4px;
+    color: #9ca3af;
+}
+
+/* 实时状态卡片 */
+.live-card {
+    max-width: 1100px;
+    margin: -30px auto 30px auto;
+    padding: 0 20px;
+    position: relative;
+    z-index: 10;
+}
+
+.live-inner {
+    background: rgba(15, 25, 45, 0.75);
+    backdrop-filter: blur(12px);
+    border-radius: 40px;
+    padding: 14px 24px;
+    border: 1px solid rgba(99,102,241,0.4);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.time-box {
+    font-family: monospace;
+    font-size: 1.3rem;
+    font-weight: 600;
+    background: #0f172a;
+    padding: 5px 16px;
+    border-radius: 40px;
+    letter-spacing: 1px;
+    color: #c7d2fe;
+}
+
+.mood-text {
+    font-size: 0.85rem;
+    color: #b9c3e6;
+    flex: 1;
+    text-align: right;
+}
+
+/* 星图网格 */
+.map-container {
+    max-width: 1100px;
+    margin: 0 auto 70px auto;
+    padding: 0 20px;
+    position: relative;
+    z-index: 10;
+}
+
+.map-title {
+    text-align: center;
+    color: #818cf8;
+    font-size: 13px;
+    letter-spacing: 2px;
+    margin-bottom: 25px;
+}
+
+.map {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+}
+
+/* 可打卡节点 ✨ 新增打卡星标 */
+.node {
+    padding: 24px 16px;
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    border-radius: 28px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: linear-gradient(145deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.01) 100%);
+    backdrop-filter: blur(4px);
+    position: relative;
+}
+
+.node .icon {
+    font-size: 38px;
+    margin-bottom: 12px;
+    display: block;
+}
+
+.node .title-zh {
+    font-size: 18px;
+    font-weight: 600;
+    color: #e5e7eb;
+}
+
+.node .title-en {
+    font-size: 11px;
+    color: #6b7280;
+}
+
+/* 打卡标记 */
+.check-mark {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    font-size: 22px;
+    opacity: 0;
+    transition: 0.2s;
+}
+
+.node.checked {
+    border-color: #fbbf24;
+    box-shadow: 0 0 12px rgba(251,191,36,0.2);
+    background: rgba(251,191,36,0.08);
+}
+.node.checked .check-mark {
+    opacity: 1;
+    color: #fbbf24;
+}
+
+.node:hover {
+    transform: translateY(-6px);
+    border-color: #818cf8;
+    background: rgba(99, 102, 241, 0.12);
+}
+
+/* 详情页 */
+.page {
+    display: none;
+    padding: 40px 20px;
+    max-width: 880px;
+    margin: auto;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.back {
+    display: inline-block;
+    cursor: pointer;
+    color: #a5b4fc;
+    margin-bottom: 24px;
+    font-size: 15px;
+    background: rgba(0,0,0,0.4);
+    padding: 6px 18px;
+    border-radius: 40px;
+    transition: 0.2s;
+}
+.back:hover { background: #4f46e5; color: white; }
+
+.cover {
+    height: 320px;
+    border-radius: 28px;
+    background-size: cover;
+    background-position: center;
+    margin-bottom: 28px;
+    box-shadow: 0 18px 30px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.overlay {
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(16px);
+    border-radius: 28px;
+    padding: 32px;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+.overlay h2 {
+    font-size: 26px;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+}
+
+.section-title {
+    color: #a5b4fc;
+    font-weight: 600;
+    margin-top: 20px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ai-insight {
+    background: rgba(99, 102, 241, 0.08);
+    border-left: 4px solid #6366f1;
+    padding: 18px 20px;
+    border-radius: 18px;
+    margin-top: 28px;
+    font-style: normal;
+    color: #cbd5e6;
+    font-size: 0.9rem;
+}
+
+.ai-badge {
+    background: linear-gradient(90deg, #4f46e5, #06b6d4);
+    padding: 2px 12px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: bold;
+    color: white;
+    display: inline-block;
+    margin-bottom: 10px;
+}
+
+/* 访客留言区 */
+.guestbook {
+    max-width: 780px;
+    margin: 20px auto 60px auto;
+    padding: 0 20px;
+}
+
+.message-card {
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(12px);
+    border-radius: 32px;
+    padding: 20px 28px;
+    border: 1px solid rgba(99,102,241,0.3);
+    text-align: center;
+}
+
+.whisper-text {
+    font-size: 1rem;
+    color: #e2e8f0;
+    margin: 12px 0 8px;
+    font-style: italic;
+    letter-spacing: 0.3px;
+}
+
+.refresh-whisper {
+    background: none;
+    border: 1px solid #6366f1;
+    color: #c7d2fe;
+    border-radius: 30px;
+    padding: 5px 14px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.refresh-whisper:hover {
+    background: #4f46e5;
+    color: white;
+}
+
+/* 页脚 */
+.footer-note {
+    text-align: center;
+    padding: 32px 20px;
+    font-size: 12px;
+    color: #4b5563;
+    border-top: 1px solid rgba(255,255,255,0.05);
+}
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<!-- 首页主视觉 -->
+<div id="home-hero" class="hero">
+    <div class="hero-content">
+        <h1>沙河星空下，主楼钟声里</h1>
+        <p>BUAA · 北航角落漫游指南</p>
+    </div>
+</div>
+
+<!-- 实时北航状态 -->
+<div class="live-card">
+    <div class="live-inner">
+        <div class="time-box">
+            <span id="live-time">--:--:--</span>
+        </div>
+        <div class="mood-text" id="buaa-mood">
+            ✨ 正在同步北航时空坐标
+        </div>
+    </div>
+</div>
+
+<!-- 可打卡星图区域 -->
+<div class="map-container" id="home-map">
+    <div class="map-title">✦ 点击星轨节点 · 点亮属于你的足迹 ✦</div>
+    <div class="map" id="starMapGrid">
+        <!-- 六个地点会在js中动态生成以绑定打卡状态 -->
+    </div>
+</div>
+
+<!-- 六个详情页 -->
+<div id="lib" class="page">
+    <div class="back" onclick="backToHome()">← 返回时空星图</div>
+    <div class="cover" style="background-image:url('https://lib.buaa.edu.cn/engine/upload/engine/2022-03/3.%E5%9B%BE%E4%B9%A6%E9%A6%86%E6%AD%A3%E9%97%A8%E5%85%A8%E6%99%AF%20.jpg?rw=5664&rh=3417&_fileSize=10828477&_orientation=1')"></div>
+    <div class="overlay">
+        <h2>📚 图书馆 ：知识的殿堂与时空胶囊</h2>
+        <div class="section-title">📍 空间观测</div>
+        <p>这里不仅是藏书320余万册的知识海洋，更是一座藏着百年航空史的“时空胶囊”。</p>
+        <div class="section-title">📜 历史切片</div>
+        <p>北航图书馆肇始于1952年建校之初，最初的馆藏汇聚了清华、厦大等名校的航空珍本。如今它采用“三区五地”模式，学院路老馆承载着厚重的历史，而沙河校区启用的4.8万平方米新馆，则代表着未来的科技感。</p>
+        <div class="ai-insight"><span class="ai-badge">AI 情感转译</span><br>“大语言模型的底层是海量语料的参数化，而北航图书馆则是物理世界里，人类用纸张和灵魂搭建起的最大算力集群。每一盏深夜未熄的台灯，都是代码在现实里的映射。”</div>
+    </div>
+</div>
+
+<div id="museum" class="page">
+    <div class="back" onclick="backToHome()">← 返回时空星图</div>
+    <div class="cover" style="background-image:url('https://upload.wikimedia.org/wikipedia/commons/8/83/Beijing_Air_and_Space_Museum.jpg')"></div>
+    <div class="overlay">
+        <h2>✈️ 航空航天博物馆 ：可以触摸的“飞天梦”</h2>
+        <div class="section-title">📍 空间观测</div>
+        <p>馆藏300多件航空航天文物，镇馆之宝“北京一号”是1958年千名师生100天的热血杰作。当你站在它面前，看见的不仅是飞机，更是那一代人的热血与信念。</p>
+        <div class="section-title">📜 历史切片</div>
+        <p>前身是成立于1958年的北航飞机陈列室，博物馆展览区域面积达到8300平米，馆藏300多件航空航天文物以及结构、发动机、机载设备等实物，分为长空逐梦、银鹰巡空、神舟问天及空天走廊四个常设展区。</p>
+        <div class="ai-insight"><span class="ai-badge">AI 情感转译</span><br>“在CV算法里，飞机的流线被拆解为三维网格，但对于北航人而言，那些钢铁羽翼的真正参数，是写在校史第一页的‘空天报国’。”</div>
+    </div>
+</div>
+
+<div id="green" class="page">
+    <div class="back" onclick="backToHome()">← 返回时空星图</div>
+    <div class="cover" style="background-image:url('https://zs.buaa.edu.cn/__local/A/A4/C7/24FEA7E0962E7B1320FD01C69D7_DE462AFE_2EB7F.jpg')"></div>
+    <div class="overlay">
+        <h2>🌳 绿园：一草一木皆由前辈手植</h2>
+        <div class="section-title">📍 空间观测</div>
+        <p>北航的“江南园林”，湖光山色，野鸭悠游，是晨读与漫步的秘境。</p>
+        <div class="section-title">📜 历史切片</div>
+        <p>1955级的学长学姐，靠着一双手、一根扁担，一担一担挑土挖出了人工湖。如今的一草一木，都浸润着前辈们的汗水。</p>
+        <div class="ai-insight"><span class="ai-badge">AI 情感转译</span><br>“绿园的野鸭与波光遵循着最优的生态奖励函数，而半个世纪前的手植树，则是跨越时间最温柔的初始化权重。”</div>
+    </div>
+</div>
+
+<div id="main" class="page">
+    <div class="back" onclick="backToHome()">← 返回时空星图</div>
+    <div class="cover" style="background-image:url('https://zwb.buaa.edu.cn/21baiben/21images/xinzhulou.jpeg')"></div>
+    <div class="overlay">
+        <h2>🏛️ 新主楼：亚洲最大的“教学航母”</h2>
+        <div class="section-title">📍 空间观测</div>
+        <p>北航最具代表性的建筑之一，亚洲最大的单体教学楼，汇聚了无数顶尖实验室的创新心脏。</p>
+        <div class="section-title">📜 历史切片</div>
+        <p>2006年建成，投资近9亿，曾获中国建筑最高奖“鲁班奖”。它的内部结构极其复杂，但正是这座迷宫般的楼里，藏着无数个挑灯夜战的实验室，这里是北航科研实力最直观的体现。</p>
+        <div class="ai-insight"><span class="ai-badge">AI 情感转译</span><br>“新主楼就像一个深度神经网络，复杂的走廊是它的多层路由。每位迷路的新生，都在经历一场‘梯度下降’，直到找到属于自己的实验室坐标。”</div>
+    </div>
+</div>
+
+<div id="music" class="page">
+    <div class="back" onclick="backToHome()">← 返回时空星图</div>
+    <div class="cover" style="background-image:url('file:///C:/Users/siiji/OneDrive/Documents/xwechat_files/wxid_el3pfo71grzq22_5af6/temp/RWTemp/2026-06/5e089bb67fabdd787b0e90a9f6067e9e.jpg')"></div>
+    <div class="overlay">
+        <h2>🎵 晨兴音乐厅：文艺圣殿</h2>
+        <div class="section-title">📍 空间观测</div>
+        <p>校园里的“专业级音乐厅”，红砖外观，内部声学设计极佳，是古典乐、话剧、讲座的汇聚地。与学校新主楼隔路相望，毗邻北京航空航天博物馆，建筑面积5000余平方米，共设观众席878座。</p>
+        <div class="section-title">📜 历史切片</div>
+        <p>由北航杰出校友、晨兴国际控股集团创始人王祖同、杨文瑛夫妇捐资2000万元及学校投资2000余万元建成。常年20元票价，高雅艺术近在咫尺。</p>
+        <div class="ai-insight"><span class="ai-badge">AI 情感转译</span><br>“声音的反射可用傅里叶变换计算，但当合唱响起时，那些共振带来的战栗感，是AI至今无法模拟的情感高频信号。”</div>
+    </div>
+</div>
+
+<div id="shifu" class="page">
+    <div class="back" onclick="backToHome()">← 返回时空星图</div>
+    <div class="cover" style="background-image:url('https://zwb.buaa.edu.cn/__local/6/E0/E7/FD3BD520030244E8AD710D54C44_C155922E_F74C8.png')"></div>
+    <div class="overlay">
+        <h2>🏛️ 逸夫科学馆：承载历史的“校史馆”</h2>
+        <div class="section-title">📍 空间观测</div>
+        <p>邵逸夫先生捐资，现改造为校史馆，收藏北航峥嵘岁月。</p>
+        <div class="section-title">📜 历史切片</div>
+        <p>建于1989年，学术泰斗奋斗之地，2022年修旧如故改造，骨架未变，内部焕然一新，默默诉说着北航从建校到腾飞的每一步。从科研楼到校史馆，记录北航的时间轨迹。</p>
+        <div class="ai-insight"><span class="ai-badge">AI 情感转译</span><br>“它是北航的时间数据库，从科研楼到校史馆的转变，就像旧有权重上进行微调，岁月迭代，内核从未改变。”</div>
+    </div>
+</div>
+
+<!-- 访客留言区（回声） -->
+<div class="guestbook" id="guestSection">
+    <div class="message-card">
+        <div style="font-size:13px; color:#818cf8;">💬 路过北航 · 留下的回声</div>
+        <div class="whisper-text" id="dynamicWhisper">✨ 新主楼迷路三次，后来爱上了那种迷失。</div>
+        <button class="refresh-whisper" id="newWhisperBtn">⟳ 换一句星河回响</button>
+    </div>
+</div>
+
+<div class="footer-note">
+    ✦ 沙河星空下 · 主楼钟声里 ✦ <br> 每一处角落都藏着北航人的青春
+</div>
+
+<script>
+// ---------- 1. 生成星空粒子 ----------
+const starContainer = document.getElementById("stars");
+for(let i=0; i<180; i++){
+    let s = document.createElement("div");
+    s.className = "star";
+    s.style.left = Math.random()*100+"%";
+    s.style.top = Math.random()*100+"%";
+    s.style.width = (Math.random()*2.5 + 1) + "px";
+    s.style.height = s.style.width;
+    s.style.animationDuration = (1.5 + Math.random()*5)+"s";
+    s.style.animationDelay = Math.random()*3+"s";
+    starContainer.appendChild(s);
+}
+
+// ---------- 2. 实时北航状态（时间 + 氛围文案）----------
+function updateBUAAVibe() {
+    const now = new Date();
+    const h = now.getHours();
+    const m = now.getMinutes();
+    const s = now.getSeconds();
+    const timeStr = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+    document.getElementById('live-time').innerText = timeStr;
+    let mood = '';
+    if (h < 8) mood = '🌙 主楼还有一小时苏醒，图书馆灯光未熄 · 清晨静谧';
+    else if (h < 12) mood = '☕ 绿园的猫刚伸完懒腰，早八人在新主楼穿行';
+    else if (h < 14) mood = '📖 博物馆里有人对着“北京一号”发呆 · 午后阳光正好';
+    else if (h < 18) mood = '✈️ 下午的光穿过逸夫楼窗格，像老校史在翻页';
+    else if (h < 22) mood = '🎵 音乐厅门口有人在等一场不存在的演出 · 晚风微凉';
+    else mood = '🌟 星空笼罩新主楼，实验灯火通明 · 北航不眠夜';
+    document.getElementById('buaa-mood').innerHTML = `📍 ${mood}`;
+}
+updateBUAAVibe();
+setInterval(updateBUAAVibe, 1000);
+
+// ---------- 3. 打卡系统 (localStorage) + 动态生成可打卡网格 ----------
+const locations = [
+    { id: 'lib', nameZh: '图书馆', nameEn: 'Library', icon: '📚' },
+    { id: 'museum', nameZh: '航空航天博物馆', nameEn: 'Air & Space Museum', icon: '✈️' },
+    { id: 'green', nameZh: '绿园', nameEn: 'Green Garden', icon: '🌳' },
+    { id: 'main', nameZh: '新主楼', nameEn: 'New Main Building', icon: '🏛️' },
+    { id: 'music', nameZh: '晨兴音乐厅', nameEn: 'Sunrise Concert Hall', icon: '🎼' },
+    { id: 'shifu', nameZh: '逸夫科学馆', nameEn: 'YI FU Science Building', icon: '🔭' }
+];
+
+function loadCheckStatus() {
+    const stored = localStorage.getItem('buaa_visited');
+    if(stored) {
+        return JSON.parse(stored);
+    } else {
+        return {};
+    }
+}
+
+function saveCheckStatus(statusObj) {
+    localStorage.setItem('buaa_visited', JSON.stringify(statusObj));
+}
+
+let checkStatus = loadCheckStatus();
+
+function renderStarMap() {
+    const container = document.getElementById('starMapGrid');
+    if(!container) return;
+    container.innerHTML = '';
+    locations.forEach(loc => {
+        const isChecked = checkStatus[loc.id] === true;
+        const nodeDiv = document.createElement('div');
+        nodeDiv.className = `node ${isChecked ? 'checked' : ''}`;
+        nodeDiv.setAttribute('data-id', loc.id);
+        nodeDiv.onclick = (function(id) { 
+            return function() { toggleCheckAndOpen(id); };
+        })(loc.id);
+        nodeDiv.innerHTML = `
+            <div class="check-mark">⭐</div>
+            <span class="icon">${loc.icon}</span>
+            <span class="title-zh">${loc.nameZh}</span>
+            <span class="title-en">${loc.nameEn}</span>
+        `;
+        container.appendChild(nodeDiv);
+    });
+}
+
+function toggleCheckAndOpen(locId) {
+    if(checkStatus[locId]) {
+        delete checkStatus[locId];
+    } else {
+        checkStatus[locId] = true;
+    }
+    saveCheckStatus(checkStatus);
+    renderStarMap();
+    openPage(locId);
+}
+
+function openPage(id){
+    document.querySelectorAll(".page").forEach(p=>p.style.display="none");
+    document.getElementById("home-hero").style.display="none";
+    const mapDiv = document.getElementById("home-map");
+    if(mapDiv) mapDiv.style.display="none";
+    const guestDiv = document.getElementById("guestSection");
+    if(guestDiv) guestDiv.style.display="none";
+    const footer = document.querySelector('.footer-note');
+    if(footer) footer.style.display = "none";
+    document.getElementById(id).style.display="block";
+    window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function backToHome(){
+    document.querySelectorAll(".page").forEach(p=>p.style.display="none");
+    document.getElementById("home-hero").style.display="flex";
+    const mapDiv = document.getElementById("home-map");
+    if(mapDiv) mapDiv.style.display="block";
+    const guestDiv = document.getElementById("guestSection");
+    if(guestDiv) guestDiv.style.display="block";
+    const footer = document.querySelector('.footer-note');
+    if(footer) footer.style.display = "block";
+    renderStarMap();
+}
+
+window.openPage = openPage;
+window.backToHome = backToHome;
+
+renderStarMap();
+
+// ---------- 4. 访客回声系统（多段温暖文案随机/手动刷新）----------
+const whispers = [
+    "✨ 新主楼迷路三次，后来爱上了那种迷失。",
+    "🌿 在绿园看过一次雪，像整个北航被按下了静音键。",
+    "🎶 晨兴音乐厅的第一排，连呼吸声都能被听见。",
+    "📜 逸夫楼改校史馆那天，有人在老照片前站了十分钟。",
+    "📖 图书馆三楼靠窗位置，能看到飞机从晚霞中穿过。",
+    "✈️ 博物馆里的北京一号，每一次凝视都是一次跨时空对话。",
+    "🏛️ 新主楼的F座藏着全北航最浪漫的日落。",
+    "💡 深夜主楼大厅不灭的灯，是工科生的星辰大海。"
+];
+
+function getRandomWhisper() {
+    return whispers[Math.floor(Math.random() * whispers.length)];
+}
+
+function setRandomWhisper() {
+    const whisperEl = document.getElementById('dynamicWhisper');
+    if(whisperEl) whisperEl.innerText = getRandomWhisper();
+}
+
+document.getElementById('newWhisperBtn')?.addEventListener('click', () => {
+    setRandomWhisper();
+});
+setRandomWhisper();
+
+window.addEventListener('load', () => {
+    backToHome();
+});
+</script>
+</body>
+</html>
